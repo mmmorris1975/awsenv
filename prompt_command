@@ -1,0 +1,15 @@
+function do_prompt_command {
+  # Add any commands want executed each time before the PS1 prompt is displayed here
+
+  # Set initial AWS environment to 'AI Cloud Admin' setup
+  awsenv ${AWS_DEFAULT_PROFILE:=default}  
+  rotate_api_keys
+
+  AWS_PROFILE=${HOME}/.profile.d/aws.sh
+  if [ -r $AWS_PROFILE ]
+  then
+    source $AWS_PROFILE
+  fi
+}
+
+PROMPT_COMMAND=do_prompt_command

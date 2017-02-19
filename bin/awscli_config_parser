@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+
+import sys, os
+from configparser import ConfigParser
+
+def get_profile(profile='default'):
+  cfg = {}
+
+  cfg_file  = os.path.join(os.getenv('HOME'), '.aws', 'config')
+  cred_file = os.path.join(os.getenv('HOME'), '.aws', 'credentials')
+
+  c = ConfigParser()
+  c.read((cfg_file, cred_file))
+
+  for p in (profile, 'profile ' + profile):
+    if p in c:
+      cfg.update(c.items(p))
+
+  return cfg
+
+cfg = get_profile('default')
+cfg.update(get_profile(sys.argv[1]))
+
+for (k,v) in cfg.items():
+  print("%s='%s'" % (k.upper(), v))
