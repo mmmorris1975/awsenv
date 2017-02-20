@@ -13,23 +13,17 @@ export AWS_REGION=${AWS_DEFAULT_REGION:=`aws configure get region --profile defa
 export AWS_DEFAULT_REGION
 
 function awsenv {
-  file=/tmp/.aws_cred_${1}_$(date +%s)_$(dd if=/dev/random bs=512 count=1 2>/dev/null | cksum | awk '{print $1}')
+  rand=$(dd if=/dev/urandom bs=512 count=1 2>/dev/null | cksum | awk '{print $1}')
+  file=/tmp/.aws_cred_${1}_${USER}_$(date +%s)_${rand}
   touch $file && chmod 600 $file
 
-  if [ -x ${HOME}/bin/awscli_config_parser ]
+  if [ `which awscli_config_parser` ]
   then
-    ${HOME}/bin/awscli_config_parser $1 >$file
-  elif [ -x /usr/local/bin/awscli_config_parser ]
-  then
-    /usr/local/bin/awscli_config_parser $1 >$file
-  else
-    echo "ERROR: Unable to find credentials for AWS Environment $1"
-  fi
-
-  if [ -f $file ]
-  then
+    awscli_config_parser $1 >$file
     source $file
     rm -f $file
+  else
+    echo "ERROR: Unable to find credentials for AWS Environment $1"
   fi
 
   export AWS_DEFAULT_PROFILE=$1
@@ -37,7 +31,7 @@ function awsenv {
 
 function rotate_api_keys {
   AWS_API_KEY_LIFETIME=$((${AWS_API_KEY_LIFETIME_HOURS} * 3600))
-  file=/tmp/.aws_credentials_expiration_${AWS_DEFAULT_PROFILE}
+  file=/tmp/.aws_credentials_expiration_${AWS_DEFAULT_PROFILE}_${USER}
 
   if [ ! -f $file ]
   then
@@ -57,7 +51,7 @@ function rotate_api_keys {
       aws configure set aws_secret_access_key $(echo $new_keys | cut -d ':' -f 2) --profile $AWS_DEFAULT_PROFILE
 
       echo $((`date +%s` + $AWS_API_KEY_LIFETIME)) >$file
-      rm ${file}.lock
+      rm -f ${file}.lock
     fi
   fi
 }
