@@ -21,10 +21,11 @@ function awsenv {
   then
     awscli_config_parser $1 >$file
     source $file
-    rm -f $file
   else
     echo "ERROR: Unable to find credentials for AWS Environment $1"
   fi
+
+  rm -f $file
 
   export AWS_DEFAULT_PROFILE=$1
 }
